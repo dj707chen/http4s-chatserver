@@ -1,14 +1,15 @@
 import com.typesafe.sbt.SbtNativePackager.autoImport.NativePackagerHelper._
 
-val Http4sVersion  = "0.21.0-M5"
-val Specs2Version  = "4.8.0"
+val Http4sVersion = "0.21.0-M5"
+val Specs2Version = "4.8.0"
 val LogbackVersion = "1.2.3"
 
 lazy val root = (project in file("."))
   .settings(
-    organization := "com.martinsnyder",
+    // @formatter:off
     name := "chatserver",
     version := Http4sVersion,
+    organization := "com.martinsnyder",
     scalaVersion := "2.13.1",
     libraryDependencies ++= Seq(
       "org.http4s"     %% "http4s-blaze-server" % Http4sVersion,
@@ -18,11 +19,12 @@ lazy val root = (project in file("."))
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
+    // @formatter:on
     mappings in Universal ++= directory(baseDirectory.value / "static"),
     buildInfoKeys := Seq[BuildInfoKey](name, version),
     buildInfoPackage := "com.martinsnyder.chatserver",
     turbo := true
-  )
+    )
   .enablePlugins(JavaAppPackaging)
   .enablePlugins(BuildInfoPlugin)
 
@@ -34,4 +36,4 @@ scalacOptions ++= Seq(
   "-language:postfixOps",
   "-feature",
   "-Xfatal-warnings"
-)
+  )
