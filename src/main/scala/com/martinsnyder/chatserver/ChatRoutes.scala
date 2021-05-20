@@ -56,8 +56,10 @@ class ChatRoutes[F[_]: Sync: ContextShift]
                |<html>
                  |<title>Chat Server State</title>
                  |<body>
-                   |<div>Users: ${state.userRooms.keys.size}</div>
                    |<div>Rooms: ${state.roomMembers.keys.size}</div>
+                   |<div>Rooms: ${state.roomMembers}</div>
+                   |<div>Users: ${state.userRooms.keys.size}</div>
+                   |<div>Rooms: ${state.userRooms}</div>
                  |</body>
                |</html>
               """.stripMargin)

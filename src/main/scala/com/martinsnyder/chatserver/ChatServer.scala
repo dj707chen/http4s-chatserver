@@ -81,9 +81,9 @@ object ServerStream {
             : fs2.Stream[F, ExitCode] = {
 
       BlazeServerBuilder[F].bindHttp(port, "0.0.0.0")
-                         .withHttpApp( Router(
-                           "/" -> new ChatRoutes[F](chatState, queue, topic).routes
-                           ).orNotFound )
-                         .serve
+                           .withHttpApp( Router(
+                             "/" -> new ChatRoutes[F](chatState, queue, topic).routes
+                             ).orNotFound )
+                           .serve
   }
 }
