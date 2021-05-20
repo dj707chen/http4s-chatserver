@@ -67,10 +67,16 @@ var chat = {}; // Namespace
 			else {
 				// Process the entry
 				if (sEntry !== '') {
-    				chat.ws.send(sEntry);
-                    for (idx=0; idx<chatMulti.wsList.length; idx++) {
-    				  chatMulti.wsList[idx].send(sEntry)
-                    }
+				    var colonInd = sEntry.indexOf(":")
+			        var userStr = sEntry.substring(0, colonInd)
+		            var idx = parseInt(userStr)
+				    console.log("colonInd=" + colonInd + ", userStr=" + userStr + ", Number.isInteger(idx)=" + Number.isInteger(idx))
+				    if (colonInd >= 1 && Number.isInteger(idx)) {
+				        console.log("sub user")
+                        chatMulti.wsList[idx].send(sEntry.substring(colonInd+1))
+				    } else {
+    				  chat.ws.send(sEntry);
+				    }
                 }
 			}
 		}

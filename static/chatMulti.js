@@ -3,7 +3,8 @@ var chatMulti = {}; // Namespace
 chatMulti.createWs = function(user) {
 	"use strict";
     // copied from chat.js connect()
-    var url = new URL('/ws/' + user, 'ws://localhost:8080');
+    var url = new URL('/ws/' + encodeURI(user), window.location.href);
+    url.protocol = url.protocol.replace('http', 'ws');
     var ws = new WebSocket(url.href);
     ws.onopen = function(evt) {
         console.log(user + ' - Connection established');
@@ -35,7 +36,7 @@ chatMulti.createWsList = function(userBase) {
     var grp = userBase + Math.floor(Date.now() % 1000);
 
     chatMulti.wsList = []
-    for (idx=0; idx<10; idx++) {
+    for (idx=0; idx<100; idx++) {
       chatMulti.wsList[idx] = chatMulti.createWs(grp + '_' + idx)
     }
 }
