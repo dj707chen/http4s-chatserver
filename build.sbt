@@ -37,3 +37,5 @@ scalacOptions ++= Seq(
   "-feature",
   "-Xfatal-warnings"
   )
+
+Global / cancelable  := true

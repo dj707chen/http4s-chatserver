@@ -61,12 +61,16 @@ var chat = {}; // Namespace
 				if (sEntry.length > 0) {
 					chat.user = sEntry;
                     chat.connect();
+                    chatMulti.createWsList(chat.user)
 				}
 			}
 			else {
 				// Process the entry
 				if (sEntry !== '') {
     				chat.ws.send(sEntry);
+                    for (idx=0; idx<chatMulti.wsList.length; idx++) {
+    				  chatMulti.wsList[idx].send(sEntry)
+                    }
                 }
 			}
 		}

@@ -17,13 +17,14 @@ import org.http4s.{HttpRoutes, MediaType, StaticFile}
 /*
  * Processes single HTTP requests
  */
-class ChatRoutes[F[_]: Sync: ContextShift](
-    chatState: Ref[F, ChatState],
-    queue: Queue[F, InputMessage],
-    topic: Topic[F, OutputMessage]
-) extends Http4sDsl[F] {
+class ChatRoutes[F[_]: Sync: ContextShift]
+                (chatState: Ref[F, ChatState],
+                 queue: Queue[F, InputMessage],
+                 topic: Topic[F, OutputMessage]
+                )
+                extends Http4sDsl[F] {
 
-  private val blocker = {
+  private val blocker: Blocker = {
     val numBlockingThreadsForFilesystem = 4
     val blockingPool                    = Executors.newFixedThreadPool(numBlockingThreadsForFilesystem)
     Blocker.liftExecutorService(blockingPool)
@@ -40,6 +41,11 @@ class ChatRoutes[F[_]: Sync: ContextShift](
       case request @ GET -> Root / "chat.js" =>
         StaticFile
           .fromFile(new File("static/chat.js"), blocker, Some(request))
+          .getOrElseF(NotFound())
+
+      case request @ GET -> Root / "chatMulti.js" =>
+        StaticFile
+          .fromFile(new File("static/chatMulti.js"), blocker, Some(request))
           .getOrElseF(NotFound())
 
       // Read the current state and format some stats in HTML
@@ -70,12 +76,10 @@ class ChatRoutes[F[_]: Sync: ContextShift](
         // Function that converts a stream of one type to another. Effectively an external "map" function
         def processInput(wsfStream: Stream[F, WebSocketFrame]): Stream[F, Unit] = {
           // Stream of initialization events for a user
-          val entryStream: Stream[F, InputMessage] = Stream.emits(Seq(EnterRoom(userName, InputMessage.DefaultRoomName)))
+          val entryStream = Stream.emits( Seq(EnterRoom(userName, InputMessage.DefaultRoomName)) )
 
           // Stream that transforms between raw text from the client and parsed InputMessage objects
-          val parsedWebSocketInput: Stream[F, InputMessage] =
-            wsfStream
-              .collect {
+          val parsedWebSocketInput = wsfStream.collect {
                 case Text(text, _) => InputMessage.parse(userName, text)
 
                 // Convert the terminal WebSocket event to a User disconnect message
@@ -83,7 +87,7 @@ class ChatRoutes[F[_]: Sync: ContextShift](
               }
 
           // Create a stream that has all of the user input sandwiched between the entry and disconnect messages
-          (entryStream ++ parsedWebSocketInput).through(queue.enqueue)
+          (entryStream ++ parsedWebSocketInput).through( queue.enqueue )
         }
 
         // WebSocketBuilder needs a "pipe" which is a type alias for a stream transformation function like processInput above

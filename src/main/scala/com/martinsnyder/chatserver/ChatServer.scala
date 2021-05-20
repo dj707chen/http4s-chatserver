@@ -16,7 +16,8 @@ import scala.util.Try
  * Application entry point
  */
 object ChatServer extends IOApp {
-  def run(args: List[String]): IO[ExitCode] = {
+  def run(args: List[String])
+         : IO[ExitCode] = {
     // Get a tcp port that might be specified on the command line or in an environment variable
     val httpPort = args.headOption
                        .orElse(sys.env.get("PORT"))
@@ -45,7 +46,7 @@ object ChatServer extends IOApp {
                     val httpStream = ServerStream.stream[IO]( httpPort, refState, queue, topic )
 
                     // Stream to keep alive idle WebSockets
-                    val keepAlive = Stream.awakeEvery[IO](30.seconds)
+                    val keepAlive = Stream.awakeEvery[IO]( 30.seconds )
                                           .map( _ => KeepAlive )
                                           .through(topic.publish)
 
@@ -54,8 +55,7 @@ object ChatServer extends IOApp {
                     // 2. apply message to state reference
                     // 3. Convert resulting output messages to a stream
                     // 4. Publish output messages to the publish/subscribe topic
-                    val processingStream =
-                    queue.dequeue
+                    val processingStream = queue.dequeue
                          .evalMap( msg => refState.modify(_.process(msg)) )
                          .flatMap(Stream.emits)
                          .through(topic.publish)
@@ -72,14 +72,18 @@ object ChatServer extends IOApp {
 
 object ServerStream {
   // Builds a stream for HTTP events processed by our router
-  def stream[F[_] : ConcurrentEffect : Timer : ContextShift](port      : Int,
-                                                             chatState : Ref[F, ChatState],
-                                                             queue     : Queue[F, InputMessage],
-                                                             topic     : Topic[F, OutputMessage]
-                                                            ): fs2.Stream[F, ExitCode] =
-    BlazeServerBuilder[F].bindHttp(port, "0.0.0.0")
+  def stream[F[_] : ConcurrentEffect : Timer : ContextShift]
+            (port      : Int,
+             chatState : Ref[F, ChatState],
+             queue     : Queue[F, InputMessage],
+             topic     : Topic[F, OutputMessage]
+            )
+            : fs2.Stream[F, ExitCode] = {
+
+      BlazeServerBuilder[F].bindHttp(port, "0.0.0.0")
                          .withHttpApp( Router(
                            "/" -> new ChatRoutes[F](chatState, queue, topic).routes
                            ).orNotFound )
                          .serve
+  }
 }

@@ -5,10 +5,9 @@ object ChatState {
   def apply(): ChatState = ChatState(Map.empty, Map.empty)
 }
 
-case class ChatState(
-    userRooms: Map[String, String],
-    roomMembers: Map[String, Set[String]]
-) {
+case class ChatState(userRooms  : Map[String, String],
+                     roomMembers: Map[String, Set[String]]
+                    ) {
 
   def process(msg: InputMessage): (ChatState, Seq[OutputMessage]) = msg match {
     case Help(user) =>
@@ -37,14 +36,14 @@ case class ChatState(
         case Some(_) =>
           // Already in - move from one room to another
           val (intermediateState, leaveMessages) = removeFromCurrentRoom(user)
-          val (finalState, enterMessages)        = intermediateState.addToRoom(user, toRoom)
+          val (finalState, enterMessages) = intermediateState.addToRoom(user, toRoom)
 
           (finalState, leaveMessages ++ enterMessages)
       }
 
     case ListRooms(user) =>
       val roomList = roomMembers.keys.toList.sorted
-        .mkString("Rooms:\n\t", "\n\t", "")
+                                .mkString("Rooms:\n\t", "\n\t", "")
 
       (this, Seq(SendToUser(user, roomList)))
 
@@ -94,7 +93,7 @@ case class ChatState(
 
   private def addToRoom(user: String, room: String): (ChatState, Seq[OutputMessage]) = {
     val nextMembers = roomMembers.getOrElse(room, Set()) + user
-    val nextState   = ChatState(userRooms + (user -> room), roomMembers + (room -> nextMembers))
+    val nextState = ChatState(userRooms + (user -> room), roomMembers + (room -> nextMembers))
 
     // Send to "next" room population to include the joining user
     (nextState, nextState.sendToRoom(room, s"$user has joined $room"))
